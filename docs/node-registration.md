@@ -1,6 +1,6 @@
 # Node 打包与登记
 
-本项目按 paos-resource-manager 的 Node 规范准备，类型为 `operator`，当前登记配置为 `0.1.0 / linux / x86_64`，制品类型为 `directory_tar_gz`。规范来源是资源管理器仓库的 `docs/node-registration.md` 和 `examples/registration/node.json`。
+本项目按 paos-resource-manager 的 Node 规范准备，类型为 `operator`，当前登记配置为 `0.2.3 / linux / x86_64`，制品类型为 `directory_tar_gz`。规范来源是资源管理器仓库的 `docs/node-registration.md` 和 `examples/registration/node.json`。
 
 ## 文件及用途
 
@@ -30,8 +30,8 @@ bash scripts/build_bundle.sh
 ```text
 node.json
 dist/release/
-├── operator-vlm-action-policy-0.1.0-linux-x86_64.tar.gz
-└── operator-vlm-action-policy-0.1.0-linux-x86_64.tar.gz.sha256
+├── operator-vlm-action-policy-0.2.3-linux-x86_64.tar.gz
+└── operator-vlm-action-policy-0.2.3-linux-x86_64.tar.gz.sha256
 ```
 
 脚本从当前 Linux 主机的 `uname -m` 获取架构，不进行交叉编译。默认输出目录是 `dist/release`，可通过 `VLM_BUNDLE_OUTPUT_DIR` 指定其他目录；更换目录后同步修改 `node.json` 的 `bundle`。脚本拒绝覆盖同名归档。需要重新准备同版本候选包时，使用新的输出目录并更新登记文件；已发布版本不可覆盖。
@@ -52,14 +52,16 @@ operator-vlm-action-policy/
 
 ## 登记字段
 
+平台发布名称为 `vlm_policy`，版本为 `0.2.3`；源码项目、发布仓库、包内根目录和可执行入口仍为 `operator-vlm-action-policy`。
+
 `node.json` 使用当前 Git remote 对应的源码地址。各字段含义如下：
 
 | 字段 | 当前值或规则 |
 | --- | --- |
 | `kind` | `node` |
-| `name`、`version` | `operator-vlm-action-policy`、`0.1.0`，需与实际发布版本一致 |
+| `name`、`version` | `vlm_policy`、`0.2.3`，需与实际发布版本一致 |
 | `bundle` | 完整原包路径，相对路径以 `node.json` 所在目录为基准 |
-| `metadata.artifact_id` | `operator-vlm-action-policy-0.1.0-linux-x86_64`；每个新版本／构建使用未占用的 ID |
+| `metadata.artifact_id` | `vlm_policy-0.2.3-linux-x86_64`；每个新版本／构建使用未占用的 ID |
 | `metadata.node_type` | `operator`；本节点执行模型推理和策略计算 |
 | `metadata.repository` | `operator-vlm-action-policy`；平台发布制品的仓库名称，首次登记后同名 Node 的后续版本不能随意更换 |
 | `metadata.github_url` | `https://github.com/PhyAgentOS/operator-vlm-action-policy`；源码仓库根地址，不带 `.git`、分支路径或查询参数 |
@@ -69,7 +71,7 @@ operator-vlm-action-policy/
 
 `metadata.version` 由登记脚本从顶层 `version` 同步，不必重复填写。SHA-256 和字节数也由登记脚本计算，不放入 `metadata`。平台对 Node 元数据有字段白名单，不要直接添加描述、依赖或自定义校验字段。
 
-本地文件不能证明平台上的名称、版本和制品 ID 尚未使用。如果 `0.1.0` 已发布，应先确定新版本，同步更新 `pyproject.toml`、`src/vlm_action_policy/__init__.py` 和 `node.json` 的版本、制品 ID、包路径，再更新 `uv.lock` 并重新构建。
+本地文件不能证明平台上的名称、版本和制品 ID 尚未使用。如果 `0.2.3` 已发布，应先确定新版本，同步更新 `pyproject.toml`、`src/vlm_action_policy/__init__.py` 和 `node.json` 的版本、制品 ID、包路径，再更新 `uv.lock` 并重新构建。
 
 ## 上传前检查
 
@@ -77,8 +79,8 @@ operator-vlm-action-policy/
 uv run --frozen pytest -q
 uv run --frozen ruff check --select E4,E7,E9,F,I src tests scripts
 uv run --frozen python scripts/verify_bundle.py \
-  dist/release/operator-vlm-action-policy-0.1.0-linux-x86_64.tar.gz
-(cd dist/release && sha256sum -c operator-vlm-action-policy-0.1.0-linux-x86_64.tar.gz.sha256)
+  dist/release/operator-vlm-action-policy-0.2.3-linux-x86_64.tar.gz
+(cd dist/release && sha256sum -c operator-vlm-action-policy-0.2.3-linux-x86_64.tar.gz.sha256)
 ```
 
 构建脚本还会在源码目录外执行冻结程序的 `--check-config`，该检查不调用模型。默认包使用 API 后端，不包含模型密钥、权重或部署方的本地 Python 插件。真实推理仍需设置 `VLM_API_BASE`、`VLM_API_KEY`、`VLM_MODEL` 等环境变量，并配置 Dora 数据流。使用本地模型插件时，必须在构建阶段显式包含插件和依赖。

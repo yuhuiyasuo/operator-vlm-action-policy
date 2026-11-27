@@ -188,6 +188,8 @@ class ProviderBackend:
         self.key = values["api_key"]
         self.model = values["model_name"]
         self.effort = resolve(m.reasoning_effort, m.effort_env)
+        if m.reasoning_effort is not None and not self.effort:
+            self.effort = "low"
         self.opener = urllib.request.build_opener(_NoRedirect())
 
     def payload(self, request: InferenceRequest) -> dict[str, Any]:

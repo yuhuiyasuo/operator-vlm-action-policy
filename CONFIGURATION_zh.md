@@ -64,7 +64,7 @@ dora run dataflow.yaml
 | `api_base` | `null` | YAML 中的 API base URL；显式值优先。 |
 | `api_key` | `null` | YAML 中的 API key；显式值优先，配置对象 repr 不输出该字段。 |
 | `model_name` | `null` | YAML 中的模型 ID；显式值优先。 |
-| `reasoning_effort` | `null` | YAML 中的推理强度；空字符串表示不发送该参数。 |
+| `reasoning_effort` | `"low"` | YAML 中的推理强度；省略、空字符串或仅含空白时使用 `low`；null 时读取 `effort_env`，环境变量为空则不发送该参数。 |
 | `api_base_env` | `VLM_API_BASE` | API base URL 所在环境变量的名字，不是 URL 值。 |
 | `api_key_env` | `VLM_API_KEY` | API key 所在环境变量的名字。 |
 | `model_name_env` | `VLM_MODEL` | 模型名所在环境变量的名字。 |

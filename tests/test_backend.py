@@ -453,11 +453,15 @@ def test_response_metadata_redacts_sensitive_identifiers_and_unknown_usage(monke
 
 
 @pytest.mark.parametrize("style", ["chat_completions", "responses"])
-@pytest.mark.parametrize("effort", ["high", ""])
-def test_explicit_model_settings_override_environment(monkeypatch, style, effort):
+@pytest.mark.parametrize("effort", ["high", "", "   "])
+@pytest.mark.parametrize("env_effort", [None, "high"])
+def test_explicit_model_settings_override_environment(monkeypatch, style, effort, env_effort):
     monkeypatch.setenv("VLM_API_BASE", "https://environment.invalid/v1")
     monkeypatch.setenv("VLM_MODEL", "environment-model")
-    monkeypatch.setenv("VLM_REASONING_EFFORT", "low")
+    if env_effort is None:
+        monkeypatch.delenv("VLM_REASONING_EFFORT", raising=False)
+    else:
+        monkeypatch.setenv("VLM_REASONING_EFFORT", env_effort)
     monkeypatch.setenv("VLM_API_KEY", "test-secret")
     client = ProviderBackend(PolicyConfig.from_mapping({"model": {
         "api_style": style, "api_base": " https://policy.invalid/v1/ ",
@@ -468,9 +472,24 @@ def test_explicit_model_settings_override_environment(monkeypatch, style, effort
         "responses" if style == "responses" else "chat/completions")
     assert body["model"] == "policy-model"
     assert client.key == "policy-secret"
-    if effort:
+    assert client.effort == (effort.strip() or "low")
+    assert (body["reasoning"]["effort"] if style == "responses"
+            else body["reasoning_effort"]) == (effort.strip() or "low")
+
+
+@pytest.mark.parametrize("style", ["chat_completions", "responses"])
+@pytest.mark.parametrize("env_effort", ["high", ""])
+def test_null_reasoning_effort_uses_environment(monkeypatch, style, env_effort):
+    monkeypatch.setenv("VLM_REASONING_EFFORT", env_effort)
+    client = ProviderBackend(PolicyConfig.from_mapping({"model": {
+        "api_style": style, "api_base": "https://policy.invalid/v1",
+        "api_key": "test-secret", "model_name": "policy-model", "reasoning_effort": None,
+    }}))
+    body = client.payload(REQUEST)
+    assert client.effort == env_effort
+    if env_effort:
         assert (body["reasoning"]["effort"] if style == "responses"
-                else body["reasoning_effort"]) == effort
+                else body["reasoning_effort"]) == env_effort
     else:
         assert "reasoning" not in body and "reasoning_effort" not in body
 
@@ -512,5 +531,5 @@ def test_policy_credentials_work_without_environment(monkeypatch):
     }})
     client = ProviderBackend(cfg)
     assert client.key == "private-policy-key"
-    assert client.model == "policy-model" and client.effort == ""
+    assert client.model == "policy-model" and client.effort == "low"
     assert "private-policy-key" not in repr(cfg)

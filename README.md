@@ -15,7 +15,7 @@ cd operator-vlm-action-policy
 
 The launcher requires `uv` and Python 3.12 on the host, prepares dependencies with `uv sync --frozen`, and preserves the caller's working directory. `operator-vlm-action-policy` remains a compatibility entry point for the same launcher.
 
-Configure `api_base`, `api_key`, `model_name`, and `reasoning_effort` directly in the `model` section of `policy.yaml`. Neither the launcher nor the Python entry point loads a default private JSON file, `VLM_ENV_FILE`, or `--env-file`. Explicit YAML values take precedence; omitted or null fields still fall back to the corresponding `*_env` environment variables. An empty `reasoning_effort` disables that request parameter. `--check-env --check-config` validates settings locally without calling the model.
+Configure `api_base`, `api_key`, `model_name`, and `reasoning_effort` directly in the `model` section of `policy.yaml`. Neither the launcher nor the Python entry point loads a default private JSON file, `VLM_ENV_FILE`, or `--env-file`. Explicit YAML values take precedence; omitted or null `api_base`, `api_key`, and `model_name` fields fall back to the corresponding `*_env` environment variables. Omitted, empty, or whitespace-only `reasoning_effort` uses `low`; set it to null to use `effort_env` (an empty environment value omits the request parameter). `--check-env --check-config` validates settings locally without calling the model.
 
 For legacy environment-based configuration, omit or set the corresponding explicit YAML fields to null, then set:
 
